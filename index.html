@@ -24,6 +24,7 @@
   --accent: #3b6ef5;
   --accent-soft: #e9efff;
   --danger: #d64545;
+  --ok: #1a9d63;
   --shadow: 0 1px 3px rgba(20, 30, 60, .06), 0 4px 16px rgba(20, 30, 60, .04);
 }
 @media (prefers-color-scheme: dark) {
@@ -36,6 +37,7 @@
     --accent: #6d93ff;
     --accent-soft: #232c45;
     --danger: #ff6b6b;
+    --ok: #4cd695;
     --shadow: none;
   }
 }
@@ -141,6 +143,54 @@ button { cursor: pointer; }
 .ev-form .field.title { grid-column: 1 / -1; }
 .ev-form .btn { grid-column: 1 / -1; }
 
+/* 운동 */
+.wk-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.wk-ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+.wk-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.wk-ring circle { fill: none; stroke-width: 8; }
+.wk-ring .track { stroke: var(--bg); }
+.wk-ring .bar { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .6s cubic-bezier(.3, 1.3, .5, 1), stroke .3s; }
+.wk-count { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+.wk-count b { font-size: 28px; color: var(--text); letter-spacing: -1px; }
+.wk-msg { font-size: 17px; font-weight: 700; line-height: 1.35; }
+.wk-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.wk-goal .wk-ring .bar { stroke: var(--ok); }
+.wk-goal .wk-msg { color: var(--ok); }
+.wk-goal .wk-day.done .wk-dot { background: var(--ok); border-color: var(--ok); }
+.wk-day:disabled { opacity: .4; cursor: default; }
+.wk-day.pop .wk-dot, .wk-ring.pop { animation: wk-pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes wk-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.confetti {
+  position: fixed; width: 8px; height: 8px; border-radius: 2px; pointer-events: none; z-index: 10;
+  animation: confetti 1s cubic-bezier(.15, .7, .3, 1) forwards;
+}
+@keyframes confetti { to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; } }
+.wk-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.wk-nav .link-btn { font-size: 20px; line-height: 1; padding: 2px 12px; }
+.wk-nav .link-btn:disabled { opacity: .25; cursor: default; }
+.wk-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.wk-day {
+  border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--muted);
+}
+.wk-dot {
+  width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border);
+  display: grid; place-items: center; font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums;
+}
+.wk-day:enabled:hover .wk-dot { border-color: var(--accent); }
+.wk-day.done .wk-dot { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.wk-day.today { color: var(--accent); font-weight: 700; }
+.wk-btn { width: 100%; margin-top: 14px; padding: 9px 12px; }
+.wk-btn.done { background: var(--accent-soft); color: var(--accent); }
+
+/* 노래 */
+.songs-card { grid-column: span 2; }
+.list a.text { color: inherit; text-decoration: none; }
+.list a.text:hover { color: var(--accent); }
+.song-art { width: 36px; height: 36px; border-radius: 6px; flex-shrink: 0; background: var(--bg); }
+.song-sub { display: block; font-size: 12px; color: var(--muted); }
+.song-results { border-bottom: 1px solid var(--border); margin-bottom: 8px; padding-bottom: 8px; }
+
 /* 즐겨찾기 */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
 .tile {
@@ -166,7 +216,11 @@ footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 1
 .toast.show { opacity: 1; }
 [hidden] { display: none !important; }
 
-@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } .weather-card { grid-column: 1 / -1; } }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .weather-card { grid-column: 1 / -1; }
+  .songs-card { grid-column: auto; }
+}
 @media (max-width: 620px) {
   .grid { grid-template-columns: 1fr; }
   .clock { font-size: 48px; }
@@ -222,6 +276,39 @@ footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 1
       <ul class="list" id="todo-list"></ul>
     </section>
 
+    <!-- 운동 -->
+    <section class="card" id="wk-card">
+      <h2>💪 운동 <span class="right" id="wk-stats"></span></h2>
+      <div class="wk-top">
+        <div class="wk-ring" id="wk-ring">
+          <svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="bar" id="wk-bar" cx="40" cy="40" r="34"/></svg>
+          <div class="wk-count"><span><b id="wk-num">0</b> / <span id="wk-goal"></span></span></div>
+        </div>
+        <div>
+          <div class="wk-msg" id="wk-msg"></div>
+          <div class="wk-sub" id="wk-sub"></div>
+        </div>
+      </div>
+      <div class="wk-nav">
+        <button class="link-btn" id="wk-prev" title="이전 주">‹</button>
+        <span id="wk-label"></span>
+        <button class="link-btn" id="wk-next" title="다음 주">›</button>
+      </div>
+      <div class="wk-days" id="wk-days"></div>
+      <button class="btn wk-btn" id="wk-today"></button>
+    </section>
+
+    <!-- 노래 -->
+    <section class="card songs-card">
+      <h2>🎵 좋은 노래</h2>
+      <form class="add-row" id="song-form">
+        <input class="field grow" id="song-input" placeholder="노래 제목이나 가수로 검색" maxlength="100" autocomplete="off">
+        <button class="btn">검색</button>
+      </form>
+      <ul class="list song-results" id="song-results" hidden></ul>
+      <ul class="list" id="song-list"></ul>
+    </section>
+
     <!-- 즐겨찾기 -->
     <section class="card bookmarks-card">
       <h2>⭐ 즐겨찾기</h2>
@@ -256,6 +343,8 @@ const DEFAULTS = {
   city: null, // { name, lat, lon } — null이면 현재 위치
   todos: [],
   events: [],
+  workouts: [], // 운동한 날짜 "YYYY-MM-DD"
+  songs: [],
   bookmarks: [
     { id: uid(), title: "네이버", url: "https://www.naver.com" },
     { id: uid(), title: "Google", url: "https://www.google.com" },
@@ -336,6 +425,9 @@ function tick() {
   if (ymd(now) !== lastDay) {
     lastDay = ymd(now);
     renderEvents();
+    renderWorkout();
+    pruneTodos();
+    renderTodos();
   }
 }
 
@@ -395,6 +487,19 @@ async function getJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
+}
+
+/** CORS 헤더를 안 주는 API용 — <script>로 불러와 콜백으로 받는다 */
+function getJSONP(url) {
+  return new Promise((resolve, reject) => {
+    const cb = `__jsonp_${uid()}`;
+    const s = h("script", { src: `${url}&callback=${cb}` });
+    const done = () => { delete window[cb]; s.remove(); clearTimeout(timer); };
+    const timer = setTimeout(() => { done(); reject(new Error("timeout")); }, 8000);
+    window[cb] = (data) => { done(); resolve(data); };
+    s.onerror = () => { done(); reject(new Error("load")); };
+    document.head.append(s);
+  });
 }
 
 function currentPosition() {
@@ -636,9 +741,20 @@ function renderTodos() {
 
 function toggleTodo(id) {
   const t = state.todos.find((x) => x.id === id);
-  if (t) t.done = !t.done;
+  if (t) {
+    t.done = !t.done;
+    t.doneAt = t.done ? ymd(new Date()) : null;
+  }
   save();
   renderTodos();
+}
+
+// 끝낸 일은 그날 하루만 남겨 두고 다음 날 지운다
+function pruneTodos() {
+  const today = ymd(new Date());
+  for (const t of state.todos) if (t.done && !t.doneAt) t.doneAt = today; // 예전에 체크해 둔 것
+  state.todos = state.todos.filter((t) => !t.done || t.doneAt >= today);
+  save();
 }
 
 function removeTodo(id) {
@@ -661,6 +777,236 @@ $("todo-clear").addEventListener("click", () => {
   state.todos = state.todos.filter((t) => !t.done);
   save();
   renderTodos();
+});
+
+// ================================================================ 운동
+const WEEK_GOAL = 3; // 주간 목표 횟수
+const RING = 2 * Math.PI * 34;
+
+/** 그 주 월요일에서 n일 뒤 (weeksAgo주 전 기준) */
+function weekDay(weeksAgo, n) {
+  const d = new Date();
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7) - weeksAgo * 7 + n);
+  return d;
+}
+
+function weekCount(done, weeksAgo) {
+  let c = 0;
+  for (let n = 0; n < 7; n++) if (done.has(ymd(weekDay(weeksAgo, n)))) c++;
+  return c;
+}
+
+let wkView = 0; // 몇 주 전을 보고 있는지 (0 = 이번 주)
+
+function renderWorkout(popped) {
+  const done = new Set(state.workouts);
+  const today = ymd(new Date());
+  const count = weekCount(done, wkView);
+  const goal = count >= WEEK_GOAL;
+
+  const mon = weekDay(wkView, 0), sun = weekDay(wkView, 6);
+  $("wk-label").textContent = wkView === 0 ? "이번 주" : wkView === 1 ? "지난주"
+    : `${mon.getMonth() + 1}/${mon.getDate()} ~ ${sun.getMonth() + 1}/${sun.getDate()}`;
+  $("wk-next").disabled = wkView === 0;
+
+  // 보고 있는 주의 월~일 — 깜빡한 날은 눌러서 나중에 체크할 수 있다
+  const days = [];
+  for (let n = 0; n < 7; n++) {
+    const d = weekDay(wkView, n);
+    const key = ymd(d);
+    const cls = `wk-day${done.has(key) ? " done" : ""}${key === today ? " today" : ""}${key === popped ? " pop" : ""}`;
+    days.push(h("button", { class: cls, title: key, disabled: key > today, onclick: (e) => toggleWorkout(key, e.currentTarget) },
+      h("span", {}, key === today ? "오늘" : WEEK[d.getDay()]),
+      h("span", { class: "wk-dot" }, done.has(key) ? "✓" : String(d.getDate())),
+    ));
+  }
+  $("wk-days").replaceChildren(...days);
+
+  $("wk-card").classList.toggle("wk-goal", goal);
+  $("wk-num").textContent = count;
+  $("wk-goal").textContent = WEEK_GOAL;
+  $("wk-bar").style.strokeDasharray = RING;
+  $("wk-bar").style.strokeDashoffset = RING * (1 - Math.min(count / WEEK_GOAL, 1));
+
+  const left = WEEK_GOAL - count;
+  $("wk-msg").textContent =
+    wkView > 0 ? (goal ? "목표를 달성한 주 🎉" : count ? `${count}회 운동한 주` : "운동 기록이 없는 주")
+    : count === 0 ? "이번 주 첫 운동, 시작해 볼까요?"
+    : left > 1 ? `좋아요! ${left}회 남았어요`
+    : left === 1 ? "딱 1회만 더 하면 달성!"
+    : left === 0 ? "이번 주 목표 달성! 🎉"
+    : `목표 초과 +${-left}회 💪`;
+  const month = state.workouts.filter((d) => d.startsWith(today.slice(0, 7))).length;
+  $("wk-sub").textContent = `주 ${WEEK_GOAL}회 목표 · 이번 달 ${month}회`;
+
+  // 연속 달성 주: 이번 주를 아직 못 채웠으면 지난주까지 이어진 기록을 보여준다
+  let streak = 0;
+  for (let w = weekCount(done, 0) >= WEEK_GOAL ? 0 : 1; weekCount(done, w) >= WEEK_GOAL; w++) streak++;
+  $("wk-stats").textContent = streak > 0 ? `🔥 ${streak}주 연속 달성` : "";
+
+  const btn = $("wk-today");
+  btn.classList.toggle("done", done.has(today));
+  btn.textContent = done.has(today) ? "✓ 오늘 운동 완료" : "오늘 운동했어요";
+}
+
+const CONFETTI = ["#3b6ef5", "#1a9d63", "#ffb020", "#ff5d73", "#8a63f5"];
+function burst(r, n) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < n; i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const dist = 40 + Math.random() * (n > 20 ? 150 : 70);
+    const p = h("span", { class: "confetti" });
+    p.style.left = `${r.left + r.width / 2 - 4}px`;
+    p.style.top = `${r.top + r.height / 2 - 4}px`;
+    p.style.background = CONFETTI[i % CONFETTI.length];
+    p.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+    p.style.setProperty("--dy", `${Math.sin(angle) * dist + 50}px`); // 아래로 떨어지는 느낌
+    p.style.setProperty("--rot", `${Math.random() * 720 - 360}deg`);
+    document.body.append(p);
+    setTimeout(() => p.remove(), 1000);
+  }
+}
+
+function toggleWorkout(date, origin) {
+  const before = weekCount(new Set(state.workouts), wkView);
+  const adding = !state.workouts.includes(date);
+  const from = origin.getBoundingClientRect(); // 다시 그리면 누른 버튼이 사라지므로 위치를 먼저 잡아 둔다
+  state.workouts = adding ? [...state.workouts, date] : state.workouts.filter((d) => d !== date);
+  save();
+  renderWorkout(adding ? date : null);
+  if (!adding) return;
+
+  // 체크하면 "했다"는 손맛을 준다 — 목표를 채운 순간에는 크게
+  const reached = before < WEEK_GOAL && before + 1 >= WEEK_GOAL;
+  const ring = $("wk-ring");
+  ring.classList.remove("pop");
+  void ring.offsetWidth; // 애니메이션 다시 시작
+  ring.classList.add("pop");
+  burst(reached ? ring.getBoundingClientRect() : from, reached ? 60 : 14);
+  navigator.vibrate?.(reached ? [30, 60, 30, 60, 90] : 25);
+  if (reached) toast(wkView === 0 ? "이번 주 운동 목표 달성! 🎉" : "운동 목표 달성! 🎉");
+}
+
+$("wk-today").addEventListener("click", (e) => {
+  wkView = 0;
+  toggleWorkout(ymd(new Date()), e.currentTarget);
+});
+$("wk-prev").addEventListener("click", () => { wkView++; renderWorkout(); });
+$("wk-next").addEventListener("click", () => { if (wkView > 0) wkView--; renderWorkout(); });
+
+// ================================================================ 노래
+const songArt = (src) => h("img", { class: "song-art", src, alt: "", loading: "lazy", onerror: (e) => e.target.remove() });
+
+function renderSongs() {
+  const list = $("song-list");
+  if (!state.songs.length) {
+    list.replaceChildren(h("li", { class: "empty" }, "좋은 노래를 검색해서 담아 두세요"));
+    return;
+  }
+  // 입력 중인 글자로 담아 둔 노래도 바로 걸러 본다
+  const q = $("song-input").value.trim().toLowerCase();
+  const items = state.songs.filter((s) => s.text.toLowerCase().includes(q));
+  if (!items.length) {
+    list.replaceChildren(h("li", { class: "empty" }, "담아 둔 노래 중에는 없습니다"));
+    return;
+  }
+  // 최근에 적은 노래가 위로
+  list.replaceChildren(...items.reverse().map((s) =>
+    h("li", {},
+      s.art && songArt(s.art),
+      h("a", {
+        class: "text", title: "YouTube에서 찾기", target: "_blank", rel: "noopener",
+        href: `https://www.youtube.com/results?search_query=${encodeURIComponent(s.text)}`,
+      }, s.text),
+      h("button", { class: "del", title: "삭제", onclick: () => removeSong(s.id) }, "×"),
+    ),
+  ));
+}
+
+function removeSong(id) {
+  state.songs = state.songs.filter((s) => s.id !== id);
+  save();
+  renderSongs();
+}
+
+function addSong(text, art) {
+  if (state.songs.some((s) => s.text === text)) return toast("이미 담아 둔 노래입니다");
+  state.songs.push({ id: uid(), text, ...(art && { art }) });
+  save();
+  $("song-input").value = "";
+  closeSongSearch();
+  renderSongs();
+}
+
+// 미리듣기 (30초) — 한 번에 한 곡만
+const player = new Audio();
+let playingBtn = null;
+function stopPreview() {
+  player.pause();
+  if (playingBtn) playingBtn.textContent = "▶";
+  playingBtn = null;
+}
+player.addEventListener("ended", stopPreview);
+
+function togglePreview(btn, url) {
+  const same = playingBtn === btn;
+  stopPreview();
+  if (same) return;
+  player.src = url;
+  player.play().then(() => { playingBtn = btn; btn.textContent = "■"; }).catch(() => toast("미리듣기를 재생하지 못했습니다"));
+}
+
+function closeSongSearch() {
+  songSearchSeq++;
+  stopPreview();
+  $("song-results").hidden = true;
+  $("song-results").replaceChildren();
+}
+
+// 노래 검색 (iTunes Search API, 무료·키 없음). 한국 스토어에는 곡이 없어 기본 스토어를 쓴다 — 제목이 영문으로 나올 수 있다.
+let songSearchSeq = 0;
+async function searchSongs(q) {
+  const box = $("song-results");
+  const seq = ++songSearchSeq;
+  stopPreview();
+  // 검색 결과에 없어도 입력한 그대로 담을 수 있게 한다
+  const asTyped = h("li", {},
+    h("span", { class: "text" }, `"${q}"`),
+    h("button", { class: "btn ghost", onclick: () => addSong(q) }, "그대로 담기"),
+    h("button", { class: "link-btn", onclick: closeSongSearch }, "닫기"),
+  );
+  box.hidden = false;
+  box.replaceChildren(asTyped, h("li", { class: "empty" }, "검색 중…"));
+  let rows;
+  try {
+    // 이 API는 브라우저 fetch를 막을 때가 있어(CORS 헤더 누락) JSONP로 부른다
+    const r = await getJSONP(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=8&lang=ko_kr`);
+    rows = r.results.length
+      ? r.results.map((t) =>
+          h("li", {},
+            songArt(t.artworkUrl60),
+            h("span", { class: "text" }, t.trackName, h("span", { class: "song-sub" }, `${t.artistName} · ${t.collectionName}`)),
+            t.previewUrl && h("button", {
+              class: "link-btn", title: "30초 미리듣기", onclick: (e) => togglePreview(e.currentTarget, t.previewUrl),
+            }, "▶"),
+            h("button", { class: "btn ghost", onclick: () => addSong(`${t.trackName} - ${t.artistName}`, t.artworkUrl60) }, "담기"),
+          ))
+      : [h("li", { class: "empty" }, "검색 결과가 없습니다")];
+  } catch {
+    rows = [h("li", { class: "empty" }, "검색에 실패했습니다 (인터넷 연결 확인)")];
+  }
+  if (seq === songSearchSeq) box.replaceChildren(asTyped, ...rows);
+}
+
+$("song-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const q = $("song-input").value.trim();
+  if (q) searchSongs(q);
+});
+
+$("song-input").addEventListener("input", () => {
+  if (!$("song-input").value.trim()) closeSongSearch();
+  renderSongs();
 });
 
 // ================================================================ 즐겨찾기
@@ -761,13 +1107,15 @@ function renderAll() {
   renderEngine();
   renderEvents();
   renderTodos();
+  renderWorkout();
+  renderSongs();
   renderBookmarks();
 }
 
 // 30일 넘게 지난 일정은 정리
 const cutoff = ymd(new Date(Date.now() - 30 * 86400000));
 state.events = state.events.filter((e) => e.date >= cutoff);
-save();
+pruneTodos();
 
 renderAll();
 setInterval(tick, 1000);
