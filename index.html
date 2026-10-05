@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>대시보드</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f3f4f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12141a" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="대시보드">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --bg: #f3f4f7;
+  --card: #ffffff;
+  --border: #e4e6eb;
+  --text: #1c2130;
+  --muted: #7a8193;
+  --accent: #3b6ef5;
+  --accent-soft: #e9efff;
+  --danger: #d64545;
+  --shadow: 0 1px 3px rgba(20, 30, 60, .06), 0 4px 16px rgba(20, 30, 60, .04);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12141a;
+    --card: #1b1e26;
+    --border: #2a2e39;
+    --text: #e6e8ee;
+    --muted: #8b92a3;
+    --accent: #6d93ff;
+    --accent-soft: #232c45;
+    --danger: #ff6b6b;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.5;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+           calc(48px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+}
+
+/* 상단: 시계·인사·검색 */
+.top { text-align: center; margin-bottom: 28px; }
+.clock { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.date { color: var(--muted); margin-top: 4px; }
+.greeting { margin-top: 6px; font-size: 18px; }
+.search {
+  display: flex; max-width: 620px; margin: 22px auto 0; background: var(--card);
+  border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow); overflow: hidden;
+}
+.search:focus-within { border-color: var(--accent); }
+.engine {
+  border: none; background: none; padding: 0 6px 0 18px; color: var(--accent); font-weight: 600; white-space: nowrap;
+}
+.search input { flex: 1; border: none; background: none; padding: 13px 18px 13px 8px; outline: none; min-width: 0; }
+
+/* 카드 그리드 */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 18px 20px; box-shadow: var(--shadow); min-width: 0;
+}
+.card h2 { margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.card h2 .right { margin-left: auto; font-weight: 400; font-size: 13px; }
+.link-btn { border: none; background: none; color: var(--muted); padding: 2px 4px; font-size: 13px; }
+.link-btn:hover { color: var(--accent); }
+.bookmarks-card { grid-column: 1 / -1; }
+
+/* 날씨 */
+.wx-now { display: flex; align-items: center; gap: 14px; }
+.wx-icon { font-size: 52px; line-height: 1; }
+.wx-temp { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+.wx-desc { color: var(--muted); font-size: 14px; }
+.wx-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--bg); color: var(--muted); }
+.chip.good { background: #e3f2ff; color: #1565c0; }
+.chip.normal { background: #e6f6ea; color: #2e7d32; }
+.chip.bad { background: #fff1de; color: #c25e00; }
+.chip.worst { background: #ffe5e5; color: #c62828; }
+@media (prefers-color-scheme: dark) {
+  .chip.good { background: #16304d; color: #8cc4ff; }
+  .chip.normal { background: #183522; color: #8fd99c; }
+  .chip.bad { background: #3d2a12; color: #ffb866; }
+  .chip.worst { background: #401b1b; color: #ff8a8a; }
+}
+.wx-days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align: center; font-size: 13px; border-top: 1px solid var(--border); padding-top: 12px; }
+.wx-days .d { color: var(--muted); }
+.wx-days .i { font-size: 20px; }
+.wx-days .lo { color: var(--muted); }
+.wx-days .rain { color: var(--accent); font-size: 11px; min-height: 16px; }
+.city-form { display: flex; gap: 6px; margin-bottom: 12px; }
+
+/* 공통 입력·목록 */
+.add-row { display: flex; gap: 6px; margin-bottom: 10px; }
+.field {
+  border: 1px solid var(--border); background: var(--bg); border-radius: 8px;
+  padding: 7px 10px; outline: none; min-width: 0;
+}
+.field:focus { border-color: var(--accent); }
+.field.grow { flex: 1; }
+.btn {
+  border: none; border-radius: 8px; padding: 7px 12px; background: var(--accent); color: #fff; font-weight: 600; white-space: nowrap;
+}
+.btn.ghost { background: var(--bg); color: var(--text); font-weight: 400; }
+.list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+.list li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 8px; }
+.list li:hover { background: var(--bg); }
+.list .text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.del { border: none; background: none; color: var(--muted); opacity: .45; font-size: 20px; line-height: 1; padding: 4px 8px; }
+/* 마우스가 있는 기기에서만 올렸을 때 보이게 — 터치 화면에서는 항상 보인다 */
+@media (hover: hover) {
+  .del { opacity: 0; font-size: 16px; padding: 0 4px; }
+  .list li:hover .del, .tile:hover .del { opacity: 1; }
+}
+.del:hover { color: var(--danger); }
+.empty { color: var(--muted); font-size: 14px; padding: 8px 4px; }
+
+/* 할 일 */
+.todo input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); flex-shrink: 0; }
+.todo.done .text { color: var(--muted); text-decoration: line-through; }
+
+/* 일정 */
+.ev-group { font-size: 12px; font-weight: 700; color: var(--muted); margin: 10px 4px 2px; }
+.ev-group.today { color: var(--accent); }
+.ev-time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; width: 42px; flex-shrink: 0; }
+.ev-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.ev-form .field.title { grid-column: 1 / -1; }
+.ev-form .btn { grid-column: 1 / -1; }
+
+/* 즐겨찾기 */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 14px 8px 10px; border-radius: 12px; text-decoration: none; color: var(--text); font-size: 13px;
+}
+.tile:hover { background: var(--bg); }
+.tile img, .tile .fallback {
+  width: 40px; height: 40px; border-radius: 10px; background: var(--bg); padding: 6px;
+}
+.tile .fallback { display: grid; place-items: center; font-weight: 700; color: var(--accent); padding: 0; }
+.tile .name { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .del { position: absolute; top: 2px; right: 2px; }
+.tile.add { border: 1.5px dashed var(--border); color: var(--muted); justify-content: center; min-height: 90px; background: none; }
+.tile.add:hover { border-color: var(--accent); color: var(--accent); }
+.bm-form { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 13px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--card);
+  padding: 9px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+[hidden] { display: none !important; }
+
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } .weather-card { grid-column: 1 / -1; } }
+@media (max-width: 620px) {
+  .grid { grid-template-columns: 1fr; }
+  .clock { font-size: 48px; }
+  /* 16px 미만이면 아이폰이 입력할 때 화면을 확대한다 */
+  input, .field { font-size: 16px; }
+  .list li { padding: 9px 4px; }
+  .tiles { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="top">
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date"></div>
+    <div class="greeting" id="greeting"></div>
+    <form class="search" id="search-form">
+      <button type="button" class="engine" id="engine" title="검색 엔진 바꾸기">네이버</button>
+      <input id="search-input" placeholder="검색어를 입력하세요" autocomplete="off" autofocus>
+    </form>
+  </section>
+
+  <div class="grid">
+    <!-- 날씨 -->
+    <section class="card weather-card">
+      <h2>🌤️ 날씨 <span class="right"><button class="link-btn" id="wx-place" title="지역 바꾸기">위치 확인 중…</button></span></h2>
+      <form class="city-form" id="city-form" hidden>
+        <input class="field grow" id="city-input" placeholder="도시 이름 (예: 수원, 부산)">
+        <button class="btn">찾기</button>
+        <button type="button" class="btn ghost" id="city-here" title="현재 위치 사용">📍</button>
+      </form>
+      <div id="wx-body"><div class="empty">날씨를 불러오는 중…</div></div>
+    </section>
+
+    <!-- 일정 -->
+    <section class="card">
+      <h2>📅 일정 <span class="right"><button class="link-btn" id="ev-toggle">+ 추가</button></span></h2>
+      <form class="ev-form" id="ev-form" hidden>
+        <input class="field" type="date" id="ev-date" required>
+        <input class="field" type="time" id="ev-time" title="시간 (선택)">
+        <input class="field title" id="ev-title" placeholder="일정 내용" required maxlength="100">
+        <button class="btn">저장</button>
+      </form>
+      <div id="ev-list"></div>
+    </section>
+
+    <!-- 할 일 -->
+    <section class="card">
+      <h2>✅ 할 일 <span class="right"><button class="link-btn" id="todo-clear" hidden></button></span></h2>
+      <form class="add-row" id="todo-form">
+        <input class="field grow" id="todo-input" placeholder="할 일을 입력하고 Enter" maxlength="200">
+      </form>
+      <ul class="list" id="todo-list"></ul>
+    </section>
+
+    <!-- 즐겨찾기 -->
+    <section class="card bookmarks-card">
+      <h2>⭐ 즐겨찾기</h2>
+      <form class="bm-form" id="bm-form" hidden>
+        <input class="field" id="bm-title" placeholder="이름" maxlength="30" required>
+        <input class="field grow" id="bm-url" placeholder="주소 (예: naver.com)" required>
+        <button class="btn">추가</button>
+        <button type="button" class="btn ghost" id="bm-cancel">취소</button>
+      </form>
+      <div class="tiles" id="bm-tiles"></div>
+    </section>
+  </div>
+
+  <footer>
+    <button class="link-btn" id="set-name">이름 설정</button>
+    <button class="link-btn" id="export">백업 내보내기</button>
+    <button class="link-btn" id="import">백업 가져오기</button>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+// ================================================================ 저장소
+// 데이터는 이 브라우저의 localStorage에만 저장된다. 다른 PC로 옮길 때는 백업 내보내기/가져오기.
+const KEY = "dashboard.v1";
+const DEFAULTS = {
+  name: "",
+  engine: "naver",
+  city: null, // { name, lat, lon } — null이면 현재 위치
+  todos: [],
+  events: [],
+  bookmarks: [
+    { id: uid(), title: "네이버", url: "https://www.naver.com" },
+    { id: uid(), title: "Google", url: "https://www.google.com" },
+    { id: uid(), title: "YouTube", url: "https://www.youtube.com" },
+    { id: uid(), title: "Gmail", url: "https://mail.google.com" },
+    { id: uid(), title: "Claude", url: "https://claude.ai" },
+  ],
+};
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? { ...structuredClone(DEFAULTS), ...JSON.parse(raw) } : structuredClone(DEFAULTS);
+  } catch {
+    return structuredClone(DEFAULTS);
+  }
+}
+let state = load();
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch { toast("저장하지 못했습니다 (브라우저 저장소가 막혀 있음)"); }
+}
+
+function cacheGet(key, maxAgeMs) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return v && Date.now() - v.at < maxAgeMs ? v.data : null;
+  } catch { return null; }
+}
+function cacheSet(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), data })); } catch {}
+}
+
+// ================================================================ 유틸
+const $ = (id) => document.getElementById(id);
+
+/** 안전한 DOM 생성 — 사용자 입력은 항상 textContent로만 들어간다 */
+function h(tag, props = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) {
+    if (c != null && c !== false) el.append(c instanceof Node ? c : document.createTextNode(c));
+  }
+  return el;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
+const pad = (n) => String(n).padStart(2, "0");
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+// ================================================================ 시계·인사
+let lastDay = ymd(new Date());
+
+function tick() {
+  const now = new Date();
+  $("clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  $("date").textContent = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${WEEK[now.getDay()]}요일`;
+  const hr = now.getHours();
+  const hello = hr < 5 ? "늦은 밤이에요" : hr < 11 ? "좋은 아침이에요" : hr < 17 ? "좋은 오후예요" : "좋은 저녁이에요";
+  $("greeting").textContent = state.name ? `${hello}, ${state.name}님 👋` : `${hello} 👋`;
+  // 자정이 지나면 일정의 "오늘/내일" 구분을 다시 그린다
+  if (ymd(now) !== lastDay) {
+    lastDay = ymd(now);
+    renderEvents();
+  }
+}
+
+// ================================================================ 검색
+const ENGINES = {
+  naver: { label: "네이버", url: "https://search.naver.com/search.naver?query=" },
+  google: { label: "Google", url: "https://www.google.com/search?q=" },
+};
+
+function renderEngine() { $("engine").textContent = ENGINES[state.engine].label; }
+
+$("engine").addEventListener("click", () => {
+  state.engine = state.engine === "naver" ? "google" : "naver";
+  save();
+  renderEngine();
+  $("search-input").focus();
+});
+
+$("search-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const q = $("search-input").value.trim();
+  if (!q) return;
+  // 주소처럼 생겼으면 바로 이동
+  if (/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(q) && !q.includes(" ")) {
+    location.href = q.startsWith("http") ? q : `https://${q}`;
+  } else {
+    location.href = ENGINES[state.engine].url + encodeURIComponent(q);
+  }
+});
+
+// ================================================================ 날씨 (Open-Meteo, 무료·키 없음)
+const SEOUL = { name: "서울", lat: 37.5665, lon: 126.978 };
+const WMO = {
+  0: ["☀️", "맑음"], 1: ["🌤️", "대체로 맑음"], 2: ["⛅", "구름 조금"], 3: ["☁️", "흐림"],
+  45: ["🌫️", "안개"], 48: ["🌫️", "짙은 안개"],
+  51: ["🌦️", "약한 이슬비"], 53: ["🌦️", "이슬비"], 55: ["🌧️", "강한 이슬비"],
+  56: ["🌧️", "어는 이슬비"], 57: ["🌧️", "어는 이슬비"],
+  61: ["🌧️", "약한 비"], 63: ["🌧️", "비"], 65: ["🌧️", "강한 비"],
+  66: ["🌧️", "어는 비"], 67: ["🌧️", "어는 비"],
+  71: ["🌨️", "약한 눈"], 73: ["🌨️", "눈"], 75: ["❄️", "많은 눈"], 77: ["🌨️", "싸락눈"],
+  80: ["🌦️", "소나기"], 81: ["🌧️", "소나기"], 82: ["⛈️", "강한 소나기"],
+  85: ["🌨️", "눈 소나기"], 86: ["❄️", "강한 눈 소나기"],
+  95: ["⛈️", "뇌우"], 96: ["⛈️", "우박 뇌우"], 99: ["⛈️", "강한 우박 뇌우"],
+};
+const wmo = (code) => WMO[code] ?? ["🌡️", "알 수 없음"];
+
+// 환경부 기준 미세먼지 등급
+function pmGrade(value, [good, normal, bad]) {
+  if (value == null) return null;
+  if (value <= good) return ["좋음", "good"];
+  if (value <= normal) return ["보통", "normal"];
+  if (value <= bad) return ["나쁨", "bad"];
+  return ["매우나쁨", "worst"];
+}
+
+async function getJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function currentPosition() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }),
+      () => resolve(null),
+      { timeout: 8000, maximumAge: 30 * 60 * 1000 },
+    );
+  });
+}
+
+async function placeName(lat, lon) {
+  try {
+    const r = await getJSON(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`,
+    );
+    return r.locality || r.city || r.principalSubdivision || "현재 위치";
+  } catch {
+    return "현재 위치";
+  }
+}
+
+async function resolvePlace() {
+  if (state.city) return state.city;
+  const cached = cacheGet("dashboard.place", 6 * 60 * 60 * 1000);
+  if (cached) return cached;
+  const pos = await currentPosition();
+  if (!pos) return SEOUL; // 위치 권한 거부·실패 시
+  const place = { ...pos, name: await placeName(pos.lat, pos.lon) };
+  cacheSet("dashboard.place", place);
+  return place;
+}
+
+async function loadWeather(force = false) {
+  const body = $("wx-body");
+  try {
+    const place = await resolvePlace();
+    $("wx-place").textContent = `📍 ${place.name}`;
+
+    const cacheKey = `dashboard.wx.${place.lat.toFixed(2)},${place.lon.toFixed(2)}`;
+    let data = force ? null : cacheGet(cacheKey, 30 * 60 * 1000);
+    if (!data) {
+      const q = `latitude=${place.lat}&longitude=${place.lon}&timezone=auto`;
+      const [wx, air] = await Promise.all([
+        getJSON(
+          `https://api.open-meteo.com/v1/forecast?${q}&forecast_days=5` +
+            "&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m" +
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        ),
+        getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?${q}&current=pm10,pm2_5`).catch(() => null),
+      ]);
+      data = { wx, air };
+      cacheSet(cacheKey, data);
+    }
+    renderWeather(data);
+  } catch (e) {
+    body.replaceChildren(
+      h("div", { class: "empty" }, "날씨를 불러오지 못했습니다. ",
+        h("button", { class: "link-btn", onclick: () => loadWeather(true) }, "다시 시도")),
+    );
+  }
+}
+
+function renderWeather({ wx, air }) {
+  const c = wx.current;
+  const [icon, desc] = wmo(c.weather_code);
+  const pm10 = air?.current?.pm10;
+  const pm25 = air?.current?.pm2_5;
+  const g10 = pmGrade(pm10, [30, 80, 150]);
+  const g25 = pmGrade(pm25, [15, 35, 75]);
+
+  const days = wx.daily.time.map((t, i) => {
+    const d = new Date(t + "T00:00");
+    const [di] = wmo(wx.daily.weather_code[i]);
+    const rain = wx.daily.precipitation_probability_max[i];
+    return h("div", {},
+      h("div", { class: "d" }, i === 0 ? "오늘" : WEEK[d.getDay()]),
+      h("div", { class: "i" }, di),
+      h("div", {}, `${Math.round(wx.daily.temperature_2m_max[i])}° `,
+        h("span", { class: "lo" }, `${Math.round(wx.daily.temperature_2m_min[i])}°`)),
+      h("div", { class: "rain" }, rain >= 30 ? `☔ ${rain}%` : ""),
+    );
+  });
+
+  $("wx-body").replaceChildren(
+    h("div", { class: "wx-now" },
+      h("div", { class: "wx-icon" }, icon),
+      h("div", {},
+        h("div", { class: "wx-temp" }, `${Math.round(c.temperature_2m)}°`),
+        h("div", { class: "wx-desc" },
+          `${desc} · 체감 ${Math.round(c.apparent_temperature)}° · ` +
+          `최고 ${Math.round(wx.daily.temperature_2m_max[0])}° 최저 ${Math.round(wx.daily.temperature_2m_min[0])}°`),
+      ),
+    ),
+    h("div", { class: "wx-meta" },
+      g10 && h("span", { class: `chip ${g10[1]}` }, `미세먼지 ${g10[0]} ${Math.round(pm10)}`),
+      g25 && h("span", { class: `chip ${g25[1]}` }, `초미세 ${g25[0]} ${Math.round(pm25)}`),
+      h("span", { class: "chip" }, `습도 ${c.relative_humidity_2m}%`),
+      h("span", { class: "chip" }, `바람 ${(c.wind_speed_10m / 3.6).toFixed(1)}m/s`),
+    ),
+    h("div", { class: "wx-days" }, days),
+  );
+}
+
+$("wx-place").addEventListener("click", () => {
+  const f = $("city-form");
+  f.hidden = !f.hidden;
+  if (!f.hidden) $("city-input").focus();
+});
+
+// 지명 검색은 행정구역 정식 이름으로만 도시가 잡힌다 ("수원"은 시골 마을, "수원시"가 수원시).
+// 접미어를 붙인 후보를 함께 찾아 인구가 가장 많은 곳을 고른다.
+const SUFFIXES = ["", "시", "광역시", "특별시", "특별자치시", "군", "구"];
+
+async function geocode(name) {
+  const base = name.replace(/(특별자치시|특별시|광역시|시|군|구)$/, "") || name;
+  const names = [...new Set([name, ...SUFFIXES.map((s) => base + s)])];
+  const results = await Promise.all(names.map((n) =>
+    getJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(n)}&count=5&language=ko`)
+      .then((r) => r.results ?? [])
+      .catch(() => []),
+  ));
+  const all = results.flat();
+  if (!all.length) return null;
+  const score = (r) => (r.population ?? 0) + (r.country_code === "KR" ? 1 : 0);
+  return all.reduce((best, r) => (score(r) > score(best) ? r : best));
+}
+
+$("city-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("city-input").value.trim();
+  if (!name) return;
+  try {
+    const hit = await geocode(name);
+    if (!hit) return toast(`'${name}'을(를) 찾지 못했습니다`);
+    state.city = { name: hit.name, lat: hit.latitude, lon: hit.longitude };
+    save();
+    $("city-form").hidden = true;
+    $("city-input").value = "";
+    loadWeather(true);
+  } catch {
+    toast("지역 검색에 실패했습니다");
+  }
+});
+
+$("city-here").addEventListener("click", () => {
+  state.city = null;
+  save();
+  try { localStorage.removeItem("dashboard.place"); } catch {}
+  $("city-form").hidden = true;
+  $("wx-place").textContent = "위치 확인 중…";
+  loadWeather(true);
+});
+
+// ================================================================ 일정
+function renderEvents() {
+  const list = $("ev-list");
+  const today = ymd(new Date());
+  const tomorrow = ymd(new Date(Date.now() + 86400000));
+  const upcoming = state.events
+    .filter((e) => e.date >= today)
+    .sort((a, b) => (a.date + (a.time || "00:00")).localeCompare(b.date + (b.time || "00:00")));
+
+  if (!upcoming.length) {
+    list.replaceChildren(h("div", { class: "empty" }, "다가오는 일정이 없습니다"));
+    return;
+  }
+
+  const nodes = [];
+  let group = null;
+  for (const ev of upcoming) {
+    if (ev.date !== group) {
+      group = ev.date;
+      const d = new Date(ev.date + "T00:00");
+      const label = ev.date === today ? "오늘" : ev.date === tomorrow ? "내일"
+        : `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEK[d.getDay()]})`;
+      nodes.push(h("div", { class: `ev-group${ev.date === today ? " today" : ""}` }, label));
+    }
+    nodes.push(h("li", {},
+      h("span", { class: "ev-time" }, ev.time || "종일"),
+      h("span", { class: "text" }, ev.title),
+      h("button", { class: "del", title: "삭제", onclick: () => removeEvent(ev.id) }, "×"),
+    ));
+  }
+  list.replaceChildren(h("ul", { class: "list" }, nodes));
+}
+
+function removeEvent(id) {
+  state.events = state.events.filter((e) => e.id !== id);
+  save();
+  renderEvents();
+}
+
+$("ev-toggle").addEventListener("click", () => {
+  const f = $("ev-form");
+  f.hidden = !f.hidden;
+  if (!f.hidden) {
+    $("ev-date").value = ymd(new Date());
+    $("ev-title").focus();
+  }
+});
+
+$("ev-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const title = $("ev-title").value.trim();
+  const date = $("ev-date").value;
+  if (!title || !date) return;
+  state.events.push({ id: uid(), date, time: $("ev-time").value, title });
+  save();
+  $("ev-title").value = "";
+  $("ev-time").value = "";
+  $("ev-form").hidden = true;
+  renderEvents();
+});
+
+// ================================================================ 할 일
+function renderTodos() {
+  const list = $("todo-list");
+  // 안 한 일이 위, 끝낸 일은 아래로
+  const items = [...state.todos].sort((a, b) => a.done - b.done);
+  if (!items.length) {
+    list.replaceChildren(h("li", { class: "empty" }, "할 일이 없습니다 🎉"));
+  } else {
+    list.replaceChildren(...items.map((t) =>
+      h("li", { class: `todo${t.done ? " done" : ""}` },
+        h("input", { type: "checkbox", checked: t.done, onchange: () => toggleTodo(t.id) }),
+        h("span", { class: "text" }, t.text),
+        h("button", { class: "del", title: "삭제", onclick: () => removeTodo(t.id) }, "×"),
+      ),
+    ));
+  }
+  const done = state.todos.filter((t) => t.done).length;
+  const clear = $("todo-clear");
+  clear.hidden = done === 0;
+  clear.textContent = `완료 ${done}개 지우기`;
+}
+
+function toggleTodo(id) {
+  const t = state.todos.find((x) => x.id === id);
+  if (t) t.done = !t.done;
+  save();
+  renderTodos();
+}
+
+function removeTodo(id) {
+  state.todos = state.todos.filter((t) => t.id !== id);
+  save();
+  renderTodos();
+}
+
+$("todo-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("todo-input").value.trim();
+  if (!text) return;
+  state.todos.push({ id: uid(), text, done: false });
+  save();
+  $("todo-input").value = "";
+  renderTodos();
+});
+
+$("todo-clear").addEventListener("click", () => {
+  state.todos = state.todos.filter((t) => !t.done);
+  save();
+  renderTodos();
+});
+
+// ================================================================ 즐겨찾기
+function hostOf(url) {
+  try { return new URL(url).hostname; } catch { return ""; }
+}
+
+function renderBookmarks() {
+  const tiles = state.bookmarks.map((b) => {
+    const host = hostOf(b.url);
+    const fallback = h("span", { class: "fallback" }, (b.title[0] || "?").toUpperCase());
+    const img = h("img", {
+      src: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`,
+      alt: "",
+      onerror: (e) => e.target.replaceWith(fallback),
+    });
+    return h("a", { class: "tile", href: b.url, title: b.url },
+      img,
+      h("span", { class: "name" }, b.title),
+      h("button", {
+        class: "del", title: "삭제",
+        onclick: (e) => { e.preventDefault(); removeBookmark(b.id); },
+      }, "×"),
+    );
+  });
+  const add = h("button", {
+    class: "tile add",
+    onclick: () => { $("bm-form").hidden = false; $("bm-title").focus(); },
+  }, "+ 추가");
+  $("bm-tiles").replaceChildren(...tiles, add);
+}
+
+function removeBookmark(id) {
+  const b = state.bookmarks.find((x) => x.id === id);
+  if (!b || !confirm(`'${b.title}'을(를) 즐겨찾기에서 지울까요?`)) return;
+  state.bookmarks = state.bookmarks.filter((x) => x.id !== id);
+  save();
+  renderBookmarks();
+}
+
+$("bm-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  let url = $("bm-url").value.trim();
+  const title = $("bm-title").value.trim();
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  if (!hostOf(url)) return toast("주소가 올바르지 않습니다");
+  state.bookmarks.push({ id: uid(), title, url });
+  save();
+  $("bm-form").reset();
+  $("bm-form").hidden = true;
+  renderBookmarks();
+});
+
+$("bm-cancel").addEventListener("click", () => {
+  $("bm-form").reset();
+  $("bm-form").hidden = true;
+});
+
+// ================================================================ 설정·백업
+$("set-name").addEventListener("click", () => {
+  const name = prompt("인사말에 쓸 이름을 입력하세요", state.name);
+  if (name === null) return;
+  state.name = name.trim().slice(0, 20);
+  save();
+  tick();
+});
+
+$("export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = h("a", { href: URL.createObjectURL(blob), download: `dashboard-backup-${ymd(new Date())}.json` });
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$("import").addEventListener("click", () => $("import-file").click());
+
+$("import-file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.todos) || !Array.isArray(data.bookmarks)) throw new Error();
+    if (!confirm("지금 데이터를 백업 파일 내용으로 덮어쓸까요?")) return;
+    state = { ...structuredClone(DEFAULTS), ...data };
+    save();
+    renderAll();
+    loadWeather(true);
+    toast("백업을 가져왔습니다");
+  } catch {
+    toast("올바른 백업 파일이 아닙니다");
+  }
+});
+
+// ================================================================ 시작
+function renderAll() {
+  tick();
+  renderEngine();
+  renderEvents();
+  renderTodos();
+  renderBookmarks();
+}
+
+// 30일 넘게 지난 일정은 정리
+const cutoff = ymd(new Date(Date.now() - 30 * 86400000));
+state.events = state.events.filter((e) => e.date >= cutoff);
+save();
+
+renderAll();
+setInterval(tick, 1000);
+loadWeather();
+setInterval(loadWeather, 30 * 60 * 1000);
+// 앱을 다시 화면에 띄웠을 때 시계·날씨를 바로 맞춘다 (캐시가 30분 안이면 요청하지 않음)
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { tick(); loadWeather(); }
+});
+
+// 홈 화면 앱: 오프라인에서도 열리게 (https 또는 localhost에서만 동작)
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+// 브라우저가 오래 안 쓴 사이트의 저장 데이터를 지우지 않도록 요청
+navigator.storage?.persist?.().catch(() => {});
+</script>
+</body>
+</html>
